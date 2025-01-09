@@ -6,6 +6,39 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
+            /* 添加虚拟按键样式 */
+        #mobile-controls {
+            display: none;  /* 默认隐藏，只在移动设备显示 */
+            grid-template-columns: repeat(3, 60px);
+            grid-template-rows: repeat(3, 60px);
+            gap: 5px;
+            margin-top: 20px;
+        }
+
+        .control-btn {
+            width: 60px;
+            height: 60px;
+            background-color: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control-btn:active {
+            background-color: rgba(255, 255, 255, 0.4);
+        }
+
+        @media (max-width: 500px) {
+            #mobile-controls {
+                display: grid;
+            }
+        }
+        
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -70,6 +103,17 @@
     </style>
 </head>
 <body>
+    <div id="mobile-controls">
+        <div></div>
+        <button class="control-btn" id="up">↑</button>
+        <div></div>
+        <button class="control-btn" id="left">←</button>
+        <div></div>
+        <button class="control-btn" id="right">→</button>
+        <div></div>
+        <button class="control-btn" id="down">↓</button>
+        <div></div>
+    </div>
     <div id="score">分数：0</div>
     <div id="game-board"></div>
     <button id="start-btn">开始游戏</button>
@@ -186,6 +230,65 @@
         startBtn.addEventListener('click', () => {
             startBtn.textContent = '游戏中';
             initGame();
+        });
+         // 添加虚拟按键控制
+         document.getElementById('up').addEventListener('click', () => {
+            if (direction.y === 0 && isGameRunning) direction = {x: 0, y: -1};
+        });
+
+        document.getElementById('down').addEventListener('click', () => {
+            if (direction.y === 0 && isGameRunning) direction = {x: 0, y: 1};
+        });
+
+        document.getElementById('left').addEventListener('click', () => {
+            if (direction.x === 0 && isGameRunning) direction = {x: -1, y: 0};
+        });
+
+        document.getElementById('right').addEventListener('click', () => {
+            if (direction.x === 0 && isGameRunning) direction = {x: 1, y: 0};
+        });
+
+        // 添加触摸滑动控制
+        let touchStartX = 0;
+        let touchStartY = 0;
+
+        document.addEventListener('touchstart', function(e) {
+            touchStartX = e.touches[0].clientX;
+            touchStartY = e.touches[0].clientY;
+        });
+
+        document.addEventListener('touchmove', function(e) {
+            if (!isGameRunning) return;
+            
+            e.preventDefault(); // 防止页面滚动
+
+            const touchEndX = e.touches[0].clientX;
+            const touchEndY = e.touches[0].clientY;
+            
+            const dx = touchEndX - touchStartX;
+            const dy = touchEndY - touchStartY;
+            
+            // 确保滑动距离足够长，避免误触
+            const minSwipeDistance = 30;
+            
+            if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > minSwipeDistance) {
+                // 水平滑动
+                if (dx > 0 && direction.x === 0) {
+                    direction = {x: 1, y: 0}; // 右
+                } else if (dx < 0 && direction.x === 0) {
+                    direction = {x: -1, y: 0}; // 左
+                }
+            } else if (Math.abs(dy) > Math.abs(dx) && Math.abs(dy) > minSwipeDistance) {
+                // 垂直滑动
+                if (dy > 0 && direction.y === 0) {
+                    direction = {x: 0, y: 1}; // 下
+                } else if (dy < 0 && direction.y === 0) {
+                    direction = {x: 0, y: -1}; // 上
+                }
+            }
+            
+            touchStartX = touchEndX;
+            touchStartY = touchEndY;
         });
     </script>
 </body>
